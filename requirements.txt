@@ -1,0 +1,5 @@
+awswrangler
+boto3
+pandas
+pytest
+moto
