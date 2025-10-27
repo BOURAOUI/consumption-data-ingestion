@@ -16,25 +16,26 @@ def lambda_handler(event, context):
             return {"statusCode": 400}
         else :
             print("BODY existe")
-            body_event = json.loads(event["body"])
+            body_event = json.loads(record["body"])
             print (body_event)
             name_bucket = body_event["detail"]["bucket"]["name"]
-            file_size = body_event["detail"]["object"]["size"]
-            time_event = body_event["time"]
             file_name = body_event['detail']['object']['key']
-
+            print("métadonnées extraite")
             #lire le csv depuis le S3
-            s3_path = f"s3://{name_bucket}/{file_name}"
-            df = wr.s3.read_csv(s3_path)
-            print("avant l'ajout des métadonnées")
-            # Ajouter les métadonnées à chaque ligne
-            df["bucket"] = name_bucket
-            df["file_name"] = file_name
-            df["file_size"] = file_size
-            df["file_time_send"] = time_event
-            print(name_bucket, file_name, file_size)
+            try:
+                s3_path = f"s3://{name_bucket}/{file_name}"
+                print(f"Tentative de lecture du fichier : {s3_path}")
+                df = wr.s3.read_csv(s3_path)
+            except Exception as e:
+                print(f"Erreur lors de la lecture du fichier S3 : {e}")
+                return {
+                    "statusCode": 500,
+                    "body": json.dumps("Erreur de lecture du fichier S3")
+                }
+
             print("avant écriture dans la table")
-            #ecriture dans DynamoDB
+            #ecriture dans DynamoDB (je convertit tous en str)
+            df = df.astype(str)
             wr.dynamodb.put_df(
                 table_name="consumption-data-ingestion-dybnamodb-dev",
                 df=df
