@@ -35,7 +35,7 @@ def lambda_handler(event, context):
 
         #ecriture dans DynamoDB
         wr.dynamodb.put_df(
-            table_name="ConsumptionDataIngestion",
+            table_name="consumption-data-ingestion-dybnamodb-dev",
             df=df
         )
         print("message ecrit")
