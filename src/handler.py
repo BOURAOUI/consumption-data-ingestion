@@ -1,5 +1,7 @@
 import json
 import awswrangler as wr
+from botocore.retries import bucket
+
 
 def lambda_handler(event, context):
     # TODO implement
@@ -21,7 +23,7 @@ def lambda_handler(event, context):
         file_name = body_event['detail']['object']['key']
 
         #lire le csv depuis le S3
-        s3_path = s3_path = f"s3://{name_bucket}/{file_name}"
+        s3_path = f"s3://{name_bucket}/{file_name}"
         df = wr.s3.read_csv(s3_path)
 
         # Ajouter les métadonnées à chaque ligne
@@ -29,13 +31,14 @@ def lambda_handler(event, context):
         df["file_name"] = file_name
         df["file_size"] = file_size
         df["file_time_send"] = time_event
+        print(bucket, file_name, file_size)
 
         #ecriture dans DynamoDB
         wr.dynamodb.put_df(
             table_name="ConsumptionDataIngestion",
             df=df
         )
-
+        print("message ecrit")
 
     return {
         'statusCode': 200,
