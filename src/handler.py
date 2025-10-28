@@ -1,5 +1,6 @@
 import json
 import awswrangler as wr
+from datetime import datetime, timezone
 
 def lambda_handler(event, context):
     # TODO implement
@@ -32,12 +33,15 @@ def lambda_handler(event, context):
                     "statusCode": 500,
                     "body": json.dumps("Erreur de lecture du fichier S3")
                 }
-
+            #ajout timestamp d'insertion
+            timestamp_iso = datetime.now(timezone.utc).isoformat()
+            print(timestamp_iso)
+            df["Timestamp"] = timestamp_iso
             print("avant écriture dans la table")
             #ecriture dans DynamoDB (je convertit tous en str)
             df = df.astype(str)
             wr.dynamodb.put_df(
-                table_name="consumption-data-ingestion-dybnamodb-dev",
+                table_name="consumption-data-ingestion-dynamodb-dev",
                 df=df
             )
             print("message ecrit")
